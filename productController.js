@@ -1,76 +1,62 @@
-import Product from "../models/productModel.js";
-
-const createProductForm = (req, res) => {
-  res.render("product-form", { product: null });
-};
-
-const createProduct = async (req, res) => {
-  try {
-    const { name, description, category, price } = req.body;
-    const product = new Product({ name, description, category, price });
-    await product.save();
-    res.redirect("/");
-  } catch (error) {
-    res.render("error", { error: error.message });
+let products = [
+  {
+    id: 1,
+    name: "Laptop",
+    price: 55000,
+    category: "Electronics"
+  },
+  {
+    id: 2,
+    name: "Mobile",
+    price: 20000,
+    category: "Electronics"
+  },
+  {
+    id: 3,
+    name: "Keyboard",
+    price: 1500,
+    category: "Accessories"
   }
+];
+
+let nextId = 4;
+
+export const getAllProducts = () => products;
+
+export const getProductById = (id) =>
+  products.find(product => product.id === Number(id));
+
+export const createProduct = (data) => {
+  const product = {
+    id: nextId++,
+    name: data.name,
+    price: Number(data.price),
+    category: data.category
+  };
+
+  products.push(product);
+  return product;
 };
 
-const readProducts = async (req, res) => {
-  try {
-    const products = await Product.find({});
-    res.render("products", { products });
-  } catch (error) {
-    res.render("error", { error: error.message });
-  }
+export const updateProduct = (id, data) => {
+  const product = getProductById(id);
+
+  if (!product) return null;
+
+  if (data.name !== undefined) product.name = data.name;
+  if (data.price !== undefined) product.price = Number(data.price);
+  if (data.category !== undefined) product.category = data.category;
+
+  return product;
 };
 
-const readProductById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    res.render("product", { product });
-  } catch (error) {
-    res.render("error", { error: error.message });
-  }
-};
+export const deleteProduct = (id) => {
+  const index = products.findIndex(
+    product => product.id === Number(id)
+  );
 
-const updateProductForm = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    res.render("product-form", { product });
-  } catch (error) {
-    res.render("error", { error: error.message });
-  }
-};
+  if (index === -1) return false;
 
-const updateProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, description, category, price } = req.body;
-    await Product.findByIdAndUpdate(id, { name, description, category, price });
-    res.redirect("/");
-  } catch (error) {
-    res.render("error", { error: error.message });
-  }
-};
-
-const deleteProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await Product.findByIdAndDelete(id);
-    res.redirect("/");
-  } catch (error) {
-    res.render("error", { error: error.message });
-  }
-};
-
-export {
-  createProductForm,
-  createProduct,
-  readProducts,
-  readProductById,
-  updateProductForm,
-  updateProduct,
-  deleteProduct,
+  products.splice(index, 1);
+  return true;
 };
